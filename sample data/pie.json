@@ -1,8 +1,8 @@
-{
+[
   {"number":  4, "name": "Locke"},
   {"number":  8, "name": "Reyes"},
   {"number": 15, "name": "Ford"},
   {"number": 16, "name": "Jarrah"},
   {"number": 23, "name": "Shephard"},
   {"number": 42, "name": "Kwon"}
-}
+]
