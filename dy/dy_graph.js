@@ -4,8 +4,8 @@ dY.graph = {};
 
 
 
-dY.graph.addBoard = function(boardDims){
-    dY.report("dy: attempting to add a board to the document");
+dY.graph.addBoard = function(selector, boardDims){
+    dY.report("dy: adding an SVG to the document inside "+selector);
     
     if (!boardDims.hasOwnProperty("margin")) boardDims.margin = 10; // default margin
     if (typeof(boardDims.margin)=="number") boardDims.margin = {top: boardDims.margin, right: boardDims.margin, bottom: boardDims.margin, left: boardDims.margin};
@@ -32,7 +32,7 @@ dY.graph.addBoard = function(boardDims){
     
     
     // add the graph canvas to the body of the webpage
-    svg = d3.select("#dy-canvas").append("svg")
+    svg = d3.select(selector).append("svg")
             .attr("class", "board")
             .attr("width", boardDims.width)
             .attr("height", boardDims.height)

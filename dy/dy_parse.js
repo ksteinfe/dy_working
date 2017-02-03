@@ -8,12 +8,13 @@ function OnDYDataLoaded(data,fields) {
 }
 
 dY.report = function (msg){
-    //console.log(msg);
+    console.log(msg);
+    /*
     if ($("#dy-console").length){
         var text = $("#dy-console").val() +"\n" + msg;
         $("#dy-console").text(text);
         $('#dy-console').scrollTop($('#dy-console')[0].scrollHeight);
-    }
+    }*/
 }
 
 dY.parser.zoneKeyToString = function (zoneString,keyString){ return zoneString.trim() + ":" + keyString.trim() }
@@ -29,7 +30,7 @@ dY.parser.stringToZoneKey = function (str){
 }
 
 dY.parser.handleParseResults = function (results) {
-    dY.report("dy: Handling parse results.");
+    //dY.report("dy: Handling parse results.");
     
     // Handle Parse Errors
     //
@@ -49,7 +50,7 @@ dY.parser.handleParseResults = function (results) {
     //
     meta = {};
     if (results.meta.fields.length > 0){
-        dY.report("dy: Parser found "+results.meta.fields.length+" columns. Not including Date/Time, these are:")
+        dY.report("dy: Parser found "+results.meta.fields.length+" columns (not including Date/Time)")
         
         // find zone strings
         zoneStrings = new Set();
@@ -70,17 +71,19 @@ dY.parser.handleParseResults = function (results) {
         });
         
         // report
+        /*
         for (var zon in meta) {
             dY.report("\t"+zon);
             for (var key in meta[zon]) {
                 dY.report("\t\t"+key);
             }
         }
+        */
     }
     
     // Handle Hourly Data
     //
-    dY.report("dy: Parser found "+results.data.length+" rows. Parser doesn't care about the number or order.")
+    dY.report("dy: Parser found "+results.data.length+" rows. Parser doesn't care about the number of rows nor their order.")
     
     // summary data by zonekey for calculating ranges for meta
     alls = [];
@@ -133,7 +136,7 @@ dY.parser.handleParseResults = function (results) {
     
     //results.data, results.meta.fields
     arr = new dY.Arr(meta,hrs)
-    OnDYDataLoaded(arr);
+    OnDataLoaded(arr);
 }
 
 
