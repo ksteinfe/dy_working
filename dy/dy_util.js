@@ -22,6 +22,10 @@ dY.util.loadCSS = function (path){
     document.getElementsByTagName( "head" )[0].appendChild( link );
 }
 
+dY.util.pad = function(n) {
+    return (n < 10) ? ("0" + n) : n;
+}
+
 // dY.datetime
 //
 
