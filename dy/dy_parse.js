@@ -3,7 +3,7 @@
 var dY = dY || {};
 dY.parser = {};
 
-function OnDYDataLoaded(data,fields) {
+function onDataLoaded(data,fields) {
     dY.report("dhr: THIS IS A PLACEHOLDER FUNCTION - REPLACE WITH YOUR OWN");
 }
 
@@ -136,12 +136,12 @@ dY.parser.handleParseResults = function (results) {
     
     //results.data, results.meta.fields
     arr = new dY.Arr(meta,hrs)
-    OnDataLoaded(arr);
+    onDataLoaded(arr);
 }
 
 
 
-dY.parser.HandleSingleFileUpload = function (evt) {
+dY.parser.handleSingleFileUpload = function (evt) {
     var file = evt.target.files[0];
 
     Papa.parse(file, {
