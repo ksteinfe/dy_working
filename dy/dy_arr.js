@@ -2,9 +2,9 @@
 var dY = dY || {};
 
 
-dY.Arr = function(meta, hrs){
+dY.Arr = function(meta, ticks){
     this.meta = meta;
-    this.hrs = hrs;
+    this.ticks = ticks;
 }
 
 dY.Arr.prototype.type = function() {

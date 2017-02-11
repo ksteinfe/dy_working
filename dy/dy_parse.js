@@ -128,8 +128,8 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
         }
     }
     
-    // create hours
-    hrs = [];
+    // create hourly ticks
+    ticks = [];
     results.data.forEach(function(row,n) {
         hourOfYear = dY.datetime.dateToHourOfYear( dY.datetime.dateStringToDate(row["Date/Time"]) );
         data = {};
@@ -141,7 +141,7 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
                 alls[[zon,key]].push(value);
             }
         }
-        hrs.push( new dY.Hr(hourOfYear, data)  );
+        ticks.push( new dY.Tick(hourOfYear, data)  );
         
     });
     
@@ -168,7 +168,7 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     }
     
     
-    arr = new dY.Arr(meta,hrs)
+    arr = new dY.Arr(meta,ticks)
     if (typeof(callback)==='undefined') {
         return arr;
     } else {
@@ -205,8 +205,8 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
         alls[["EPW",key]] = [];
     }
     
-    // create hours
-    hrs = [];
+    // create hourly ticks
+    ticks = [];
     results.data.forEach(function(row,n) {
         datestring = dY.util.pad(row[1]) +"/"+ dY.util.pad(row[2]) + "  " + dY.util.pad(row[3])+ ":00"
         hourOfYear = dY.datetime.dateToHourOfYear( dY.datetime.dateStringToDate(datestring) );
@@ -217,7 +217,7 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
             data["EPW"][keyDef.key] = value;
             alls[["EPW",keyDef.key]].push(value);
         });
-        hrs.push( new dY.Hr(hourOfYear, data)  );
+        ticks.push( new dY.Tick(hourOfYear, data)  );
         
     });
     
@@ -240,7 +240,7 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
         meta["EPW"][key].average = sum/len;
     }
         
-    arr = new dY.Arr(meta,hrs)
+    arr = new dY.Arr(meta,ticks)
     if (typeof(callback)==='undefined') {
         return arr;
     } else {
