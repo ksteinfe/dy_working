@@ -84,12 +84,12 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     // Handle Parsed Fields
     //
     schema = {};
-    if (results.schema.fields.length > 0){
-        dY.report("dy: Parser found "+results.schema.fields.length+" columns (not including Date/Time)")
+    if (results.meta.fields.length > 0){
+        dY.report("dy: Parser found "+results.meta.fields.length+" columns (not including Date/Time)")
         
         // find zone strings
         zoneStrings = new Set();
-        results.schema.fields.forEach(function(field,n) {
+        results.meta.fields.forEach(function(field,n) {
             if (!dY.parser.stringToZoneKey(field)) return;
             zoneStrings.add(dY.parser.stringToZoneKey(field)[0]);
         });
@@ -97,11 +97,11 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
         
         // construct zoneKeys
         zoneStrings.forEach(function(zoneStr,n) {
-            schema[zoneStr] = [];
-            results.schema.fields.forEach(function(field,n) {
+            schema[zoneStr] = {};
+            results.meta.fields.forEach(function(field,n) {
                 key = dY.parser.stringToZoneKey(field);
                 //if (key && key[0] == zoneStr) schema[zoneStr].push(key[1]);
-                if (key && key[0] == zoneStr) schema[zoneStr][key[1]] = [];
+                if (key && key[0] == zoneStr) schema[zoneStr][key[1]] = {};
             });
         });
         
@@ -120,14 +120,6 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     //
     dY.report("dy: Parser found "+results.data.length+" rows. Parser doesn't care about the number of rows nor their order.")
     
-    // summary data by zonekey for calculating ranges for schema
-    alls = [];
-    for (var zon in schema) {
-        for (var key in schema[zon]) {
-            alls[[zon,key]] = [];
-        }
-    }
-    
     // create hourly ticks
     ticks = [];
     results.data.forEach(function(row,n) {
@@ -138,7 +130,6 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
             for (var key in schema[zon]) {
                 value = row[dY.parser.zoneKeyToString(zon,key)];
                 data[zon][key] = value;
-                alls[[zon,key]].push(value);
             }
         }
         ticks.push( new dY.Tick(hourOfYear, data)  );
@@ -147,26 +138,7 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     
     
     // fill out schema information
-    //console.log(alls);
-    for (var zon in schema) {
-        for (var key in schema[zon]) {
-            allsorted = alls[[zon,key]].sort(function(a,b){return a-b});
-            len = allsorted.length;
-            schema[zon][key].min = allsorted[0];
-            schema[zon][key].q1 = allsorted[Math.floor(len*.25) - 1];
-            schema[zon][key].q2 = allsorted[Math.floor(len*.50) - 1];
-            schema[zon][key].q3 = allsorted[Math.floor(len*.75) - 1];
-            schema[zon][key].max = allsorted[len-1];
-                        
-            schema[zon][key].domain = [schema[zon][key].min, schema[zon][key].max];
-            schema[zon][key].median = schema[zon][key].q2;
-            
-            sum = 0;
-            for( var i = 0; i < allsorted.length; i++ ){  sum += allsorted[i]; }
-            schema[zon][key].average = sum/len;
-        }
-    }
-    
+    schema = dY.util.summarizeTicks(schema, ticks);    
     
     arr = new dY.Arr(schema,ticks)
     if (typeof(callback)==='undefined') {
@@ -199,12 +171,6 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     //
     dY.report("dy: Parser found "+results.data.length+" rows. We expect this to represent a full year of 8760 hours.")
     
-    // summary data by zonekey for calculating ranges for schema
-    alls = [];
-    for (var key in schema["EPW"]) {
-        alls[["EPW",key]] = [];
-    }
-    
     // create hourly ticks
     ticks = [];
     results.data.forEach(function(row,n) {
@@ -215,30 +181,13 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
         dY.parser.EPWKeyDefs.forEach(function(keyDef) {
             value = row[keyDef.col];
             data["EPW"][keyDef.key] = value;
-            alls[["EPW",keyDef.key]].push(value);
         });
         ticks.push( new dY.Tick(hourOfYear, data)  );
         
     });
     
     // fill out schema information
-    //console.log(alls);
-    for (var key in schema["EPW"]) {
-        allsorted = alls[["EPW",key]].sort(function(a,b){return a-b});
-        len = allsorted.length;
-        schema["EPW"][key].min = allsorted[0];
-        schema["EPW"][key].q1 = allsorted[Math.floor(len*.25) - 1];
-        schema["EPW"][key].q2 = allsorted[Math.floor(len*.50) - 1];
-        schema["EPW"][key].q3 = allsorted[Math.floor(len*.75) - 1];
-        schema["EPW"][key].max = allsorted[len-1];
-                    
-        schema["EPW"][key].domain = [schema["EPW"][key].min, schema["EPW"][key].max];
-        schema["EPW"][key].median = schema["EPW"][key].q2;
-        
-        sum = 0;
-        for( var i = 0; i < allsorted.length; i++ ){  sum += allsorted[i]; }
-        schema["EPW"][key].average = sum/len;
-    }
+    schema = dY.util.summarizeTicks(schema, ticks);    
         
     arr = new dY.Arr(schema,ticks)
     if (typeof(callback)==='undefined') {
@@ -247,7 +196,6 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
         callback(arr);
     }
 }
-
 
 
 dY.parser.handleSingleEPlusFileUpload = function (evt) {

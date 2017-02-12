@@ -26,6 +26,52 @@ dY.util.pad = function(n) {
     return (n < 10) ? ("0" + n) : n;
 }
 
+
+
+dY.util.summarizeTicks = function(schema, ticks){
+    var summarySchema = {}
+    var alls = []; // summary data by zonekey for calculating ranges for schema
+    for (var zon in schema) {
+        summarySchema[zon] = {}
+        for (var key in schema[zon]) {
+            summarySchema[zon][key] = {}
+            alls[[zon,key]] = [];
+        }
+    }
+    for (var t in ticks) {
+        for (var zon in schema) {
+            for (var key in schema[zon]) {
+                alls[[zon,key]].push(ticks[t].data[zon][key]);
+            }
+        }
+    };
+        
+    for (var zon in schema) {
+        for (var key in schema[zon]) {
+            var allsorted = alls[[zon,key]].sort(function(a,b){return a-b});
+            var len = allsorted.length;
+            summarySchema[zon][key].min = allsorted[0];
+            summarySchema[zon][key].q1 = allsorted[Math.floor(len*.25) - 1];
+            summarySchema[zon][key].q2 = allsorted[Math.floor(len*.50) - 1];
+            summarySchema[zon][key].q3 = allsorted[Math.floor(len*.75) - 1];
+            summarySchema[zon][key].max = allsorted[len-1];
+                        
+            summarySchema[zon][key].domain = [summarySchema[zon][key].min, summarySchema[zon][key].max];
+            summarySchema[zon][key].median = summarySchema[zon][key].q2;
+            
+            var sum = 0;
+            for( var i = 0; i < allsorted.length; i++ ){  sum += allsorted[i]; }
+            summarySchema[zon][key].average = sum/len;
+        }
+    }
+    
+    return summarySchema;
+}
+
+
+
+
+
 // dY.datetime
 //
 

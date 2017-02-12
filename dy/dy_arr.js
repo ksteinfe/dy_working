@@ -14,3 +14,11 @@ dY.Arr.prototype.type = function() {
 dY.Arr.prototype.metaOf = function(zonekey) {
     return this.schema[zonekey[0]][zonekey[1]];
 };
+
+
+
+dY.Arr.prototype.calcDailySummary = function() {
+    ret = [];
+    
+    
+};
