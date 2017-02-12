@@ -17,7 +17,8 @@ dY.Tick.prototype.dayOfYear = function() {
 };
 
 dY.Tick.prototype.valueOf = function(zonekey) {
-    return this.data[zonekey[0]][zonekey[1]];
+    if (zonekey.constructor === Array)  return this.data[zonekey[0]][zonekey[1]];
+    return this.data[Object.keys(this.data)[0]][zonekey];    
 };
 
 
@@ -27,9 +28,16 @@ dY.STick = function(data){
 }
 
 dY.STick.prototype.metaOf = function(zonekey) {
-    return this.data[zonekey[0]][zonekey[1]];
+    if (zonekey.constructor === Array)  return this.data[zonekey[0]][zonekey[1]];
+    return this.data[Object.keys(this.data)[0]][zonekey];
 };
 
+dY.STick.prototype.setTickDomain = function(domain) {
+    this.startTick = domain[0];
+    this.endTick = domain[1];
+    this.midTick = Math.ceil( (domain[1] - domain[0])/2 + domain[0] );
+    this.tickDomain = domain;
+};
 
 dY.STick.prototype.averageOf = function(zonekey) { return this.metaOf(zonekey).average };
 dY.STick.prototype.domainOf = function(zonekey) { return this.metaOf(zonekey).domain };
