@@ -2,8 +2,8 @@
 var dY = dY || {};
 
 
-dY.Arr = function(meta, ticks){
-    this.meta = meta;
+dY.Arr = function(schema, ticks){
+    this.schema  = schema;
     this.ticks = ticks;
 }
 
@@ -12,5 +12,5 @@ dY.Arr.prototype.type = function() {
 };
 
 dY.Arr.prototype.metaOf = function(zonekey) {
-    return this.meta[zonekey[0]][zonekey[1]];
+    return this.schema[zonekey[0]][zonekey[1]];
 };

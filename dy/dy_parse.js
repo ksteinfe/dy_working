@@ -83,13 +83,13 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     
     // Handle Parsed Fields
     //
-    meta = {};
-    if (results.meta.fields.length > 0){
-        dY.report("dy: Parser found "+results.meta.fields.length+" columns (not including Date/Time)")
+    schema = {};
+    if (results.schema.fields.length > 0){
+        dY.report("dy: Parser found "+results.schema.fields.length+" columns (not including Date/Time)")
         
         // find zone strings
         zoneStrings = new Set();
-        results.meta.fields.forEach(function(field,n) {
+        results.schema.fields.forEach(function(field,n) {
             if (!dY.parser.stringToZoneKey(field)) return;
             zoneStrings.add(dY.parser.stringToZoneKey(field)[0]);
         });
@@ -97,19 +97,19 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
         
         // construct zoneKeys
         zoneStrings.forEach(function(zoneStr,n) {
-            meta[zoneStr] = [];
-            results.meta.fields.forEach(function(field,n) {
+            schema[zoneStr] = [];
+            results.schema.fields.forEach(function(field,n) {
                 key = dY.parser.stringToZoneKey(field);
-                //if (key && key[0] == zoneStr) meta[zoneStr].push(key[1]);
-                if (key && key[0] == zoneStr) meta[zoneStr][key[1]] = [];
+                //if (key && key[0] == zoneStr) schema[zoneStr].push(key[1]);
+                if (key && key[0] == zoneStr) schema[zoneStr][key[1]] = [];
             });
         });
         
         // report
         /*
-        for (var zon in meta) {
+        for (var zon in schema) {
             dY.report("\t"+zon);
-            for (var key in meta[zon]) {
+            for (var key in schema[zon]) {
                 dY.report("\t\t"+key);
             }
         }
@@ -120,10 +120,10 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     //
     dY.report("dy: Parser found "+results.data.length+" rows. Parser doesn't care about the number of rows nor their order.")
     
-    // summary data by zonekey for calculating ranges for meta
+    // summary data by zonekey for calculating ranges for schema
     alls = [];
-    for (var zon in meta) {
-        for (var key in meta[zon]) {
+    for (var zon in schema) {
+        for (var key in schema[zon]) {
             alls[[zon,key]] = [];
         }
     }
@@ -133,9 +133,9 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     results.data.forEach(function(row,n) {
         hourOfYear = dY.datetime.dateToHourOfYear( dY.datetime.dateStringToDate(row["Date/Time"]) );
         data = {};
-        for (var zon in meta) {
+        for (var zon in schema) {
             data[zon] = {};
-            for (var key in meta[zon]) {
+            for (var key in schema[zon]) {
                 value = row[dY.parser.zoneKeyToString(zon,key)];
                 data[zon][key] = value;
                 alls[[zon,key]].push(value);
@@ -146,29 +146,29 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     });
     
     
-    // fill out meta information
+    // fill out schema information
     //console.log(alls);
-    for (var zon in meta) {
-        for (var key in meta[zon]) {
+    for (var zon in schema) {
+        for (var key in schema[zon]) {
             allsorted = alls[[zon,key]].sort(function(a,b){return a-b});
             len = allsorted.length;
-            meta[zon][key].min = allsorted[0];
-            meta[zon][key].q1 = allsorted[Math.floor(len*.25) - 1];
-            meta[zon][key].q2 = allsorted[Math.floor(len*.50) - 1];
-            meta[zon][key].q3 = allsorted[Math.floor(len*.75) - 1];
-            meta[zon][key].max = allsorted[len-1];
+            schema[zon][key].min = allsorted[0];
+            schema[zon][key].q1 = allsorted[Math.floor(len*.25) - 1];
+            schema[zon][key].q2 = allsorted[Math.floor(len*.50) - 1];
+            schema[zon][key].q3 = allsorted[Math.floor(len*.75) - 1];
+            schema[zon][key].max = allsorted[len-1];
                         
-            meta[zon][key].domain = [meta[zon][key].min, meta[zon][key].max];
-            meta[zon][key].median = meta[zon][key].q2;
+            schema[zon][key].domain = [schema[zon][key].min, schema[zon][key].max];
+            schema[zon][key].median = schema[zon][key].q2;
             
             sum = 0;
             for( var i = 0; i < allsorted.length; i++ ){  sum += allsorted[i]; }
-            meta[zon][key].average = sum/len;
+            schema[zon][key].average = sum/len;
         }
     }
     
     
-    arr = new dY.Arr(meta,ticks)
+    arr = new dY.Arr(schema,ticks)
     if (typeof(callback)==='undefined') {
         return arr;
     } else {
@@ -189,9 +189,9 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     
     // Handle Parsed Fields
     //
-    meta = {EPW:{}};
+    schema = {EPW:{}};
     dY.parser.EPWKeyDefs.forEach(function(keyDef) {
-        meta["EPW"][keyDef.key] = {};
+        schema["EPW"][keyDef.key] = {};
     });
     
     
@@ -199,9 +199,9 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     //
     dY.report("dy: Parser found "+results.data.length+" rows. We expect this to represent a full year of 8760 hours.")
     
-    // summary data by zonekey for calculating ranges for meta
+    // summary data by zonekey for calculating ranges for schema
     alls = [];
-    for (var key in meta["EPW"]) {
+    for (var key in schema["EPW"]) {
         alls[["EPW",key]] = [];
     }
     
@@ -221,26 +221,26 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
         
     });
     
-    // fill out meta information
+    // fill out schema information
     //console.log(alls);
-    for (var key in meta["EPW"]) {
+    for (var key in schema["EPW"]) {
         allsorted = alls[["EPW",key]].sort(function(a,b){return a-b});
         len = allsorted.length;
-        meta["EPW"][key].min = allsorted[0];
-        meta["EPW"][key].q1 = allsorted[Math.floor(len*.25) - 1];
-        meta["EPW"][key].q2 = allsorted[Math.floor(len*.50) - 1];
-        meta["EPW"][key].q3 = allsorted[Math.floor(len*.75) - 1];
-        meta["EPW"][key].max = allsorted[len-1];
+        schema["EPW"][key].min = allsorted[0];
+        schema["EPW"][key].q1 = allsorted[Math.floor(len*.25) - 1];
+        schema["EPW"][key].q2 = allsorted[Math.floor(len*.50) - 1];
+        schema["EPW"][key].q3 = allsorted[Math.floor(len*.75) - 1];
+        schema["EPW"][key].max = allsorted[len-1];
                     
-        meta["EPW"][key].domain = [meta["EPW"][key].min, meta["EPW"][key].max];
-        meta["EPW"][key].median = meta["EPW"][key].q2;
+        schema["EPW"][key].domain = [schema["EPW"][key].min, schema["EPW"][key].max];
+        schema["EPW"][key].median = schema["EPW"][key].q2;
         
         sum = 0;
         for( var i = 0; i < allsorted.length; i++ ){  sum += allsorted[i]; }
-        meta["EPW"][key].average = sum/len;
+        schema["EPW"][key].average = sum/len;
     }
         
-    arr = new dY.Arr(meta,ticks)
+    arr = new dY.Arr(schema,ticks)
     if (typeof(callback)==='undefined') {
         return arr;
     } else {
