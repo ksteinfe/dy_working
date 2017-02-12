@@ -140,11 +140,11 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     // fill out schema information
     schema = dY.util.summarizeTicks(schema, ticks);    
     
-    arr = new dY.Arr(schema,ticks)
+    yr = new dY.Year(schema,ticks)
     if (typeof(callback)==='undefined') {
-        return arr;
+        return yr;
     } else {
-        callback(arr);
+        callback(yr);
     }    
 }
 
@@ -189,11 +189,11 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     // fill out schema information
     schema = dY.util.summarizeTicks(schema, ticks);    
         
-    arr = new dY.Arr(schema,ticks)
+    yr = new dY.Year(schema,ticks)
     if (typeof(callback)==='undefined') {
-        return arr;
+        return yr;
     } else {
-        callback(arr);
+        callback(yr);
     }
 }
 
