@@ -22,12 +22,14 @@ dY.graph.addBoard = function(selector, boardDims){
         boardDims.inWidth = boardDims.width - boardDims.margin.left - boardDims.margin.right
         boardDims.inHeight = boardDims.height - boardDims.margin.top - boardDims.margin.bottom
     }
+    boardDims.range = [boardDims.width,boardDims.height]
     
     drawDims = {
         width: boardDims.inWidth,
         height: boardDims.inHeight,
         xRange: [0,boardDims.inWidth],
-        yRange: [0,boardDims.inHeight]
+        yRange: [0,boardDims.inHeight],
+        range: [boardDims.inWidth,boardDims.inHeight]
     }
     
     
