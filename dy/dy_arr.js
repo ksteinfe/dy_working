@@ -12,6 +12,9 @@ dY.Year.prototype.metaOf = function(zonekey) {
     return this.schema[Object.keys(this.schema)[0]][zonekey];    
 };
 
+dY.Year.prototype.valuesOf = function(zonekey) {
+    return this.ticks.map(function(d) {return d.valueOf(zonekey);});
+};
 
 
 dY.Year.prototype.dailySummary = function(dayCount = 1) {
