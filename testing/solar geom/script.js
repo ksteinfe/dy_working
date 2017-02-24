@@ -11,14 +11,27 @@ function onDataLoaded(dObj) {
     console.log(dayOfYear +", "+ hourOfDay);
     console.log( dY.datetime.hourOfYearToDate(hourOfYear).toGMTString() );
     
-    var lat = 37.72
-    var lng = -122.22
-    var tmz = -8.0
     
-    var sGeom = dY.solarGeom.solarGeomAt(lat,lng,tmz,dayOfYear,hourOfDay);
-    console.log(sGeom);
+    var location = {
+        latitude: 37.72,
+        longitude: -122.22,
+        timezone: -8.0,
+    };
     
-    console.log(dY.solarGeom.degAnglesAt(lat,lng,tmz,dObj.ticks[hourOfYear]));
-    console.log(dY.solarGeom.radAnglesAt(lat,lng,tmz,hourOfYear));
+    var sGeom = dY.solarGeom.solarGeomAtHour(location,dayOfYear,hourOfDay);
+    //console.log(sGeom);
+    
+    var degAtHr = dY.solarGeom.degAnglesAtHour(location,dObj.ticks[hourOfYear])
+    //console.log(degAtHr);
+    
+    var radAtHr = dY.solarGeom.radAnglesAtHour(location,hourOfYear)
+    //console.log(radAtHr);
+        
+    for (var t in dObj.ticks) dObj.ticks[t].solarGeom = dY.solarGeom.solarGeomAtHour(location,dObj.ticks[t]);
+    //console.log(dObj);
+    
+    
+    var geomAtDay = dY.solarGeom.hourlyAtGivenDay(location, 0);
+    console.log(geomAtDay);
 }
 

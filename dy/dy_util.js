@@ -26,6 +26,10 @@ dY.util.pad = function(n) {
     return (n < 10) ? ("0" + n) : n;
 }
 
+dY.util.remap = function(src, tar, srcVal) {
+    var t = (srcVal - src[0]) / (src[1] - src[0]);
+    return (tar[1] - tar[0]) * t + tar[0];
+}
 
 
 dY.util.summarizeTicks = function(schema, ticks){

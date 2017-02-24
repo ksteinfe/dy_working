@@ -9,31 +9,68 @@ var dY = dY || {};
 
 dY.solarGeom = {};
 
-dY.solarGeom.vecAt = function(lat, lng, tmz, argA, argB){
-    var sGeom = dY.solarGeom.solarGeomAt(lat, lng, tmz, argA, argB)
+
+dY.solarGeom.dailyAtGivenHour = function(loc, hourOfDay){
+    var days = [...Array(365).keys()];
+    var data = days.map( function(d){ return dY.solarGeom.solarGeomAtHour(loc,d,hourOfDay); } );
+    
+    return {
+        location: loc,
+        hourOfDay: hourOfDay,
+        data: data
+    }
+}
+
+dY.solarGeom.hourlyAtGivenDay = function(loc, dayOfYear){
+    var hrs = [...Array(24).keys()];
+    var data = hrs.map( function(h){ return dY.solarGeom.solarGeomAtHour(loc,dayOfYear,h); } );
+    
+    var swtch = false;
+    var sunrise, sunset;
+    for (var d in data){
+        var sunIsUp = data[d].altitudeDeg > 0.0;
+        if (sunIsUp != swtch){
+            if (sunIsUp) sunrise = dY.util.remap( [data[d-1].altitudeDeg, data[d].altitudeDeg],[d-1,d],0.0);
+            else sunset = dY.util.remap( [data[d-1].altitudeDeg, data[d].altitudeDeg],[d-1,d],0.0);
+            swtch = sunIsUp;
+        }
+    }
+    
+    return {
+        location: loc,
+        dayOfYear: dayOfYear,
+        data: data,
+        sunrise: sunrise,
+        sunset: sunset
+    }
+}
+
+
+dY.solarGeom.vecAtHour = function(loc, argA, argB){
+    var sGeom = dY.solarGeom.solarGeomAtHour(loc, argA, argB)
     var x = Math.cos(sGeom.altitudeRad)*Math.sin(sGeom.azimuthRad)
     var y = Math.cos(sGeom.altitudeRad)*Math.cos(sGeom.azimuthRad)
     var z = Math.sin(sGeom.altitudeRad)
     return [x, y, z]
 }
 
-dY.solarGeom.degAnglesAt = function(lat, lng, tmz, argA, argB){
-    var sGeom = dY.solarGeom.solarGeomAt(lat, lng, tmz, argA, argB)
+dY.solarGeom.degAnglesAtHour = function(loc, argA, argB){
+    var sGeom = dY.solarGeom.solarGeomAtHour(loc, argA, argB)
     return {
         altitude: sGeom.altitudeDeg,
         azimuth: sGeom.azimuthDeg
     }
 }
 
-dY.solarGeom.radAnglesAt = function(lat, lng, tmz, argA, argB){
-    var sGeom = dY.solarGeom.solarGeomAt(lat, lng, tmz, argA, argB)
+dY.solarGeom.radAnglesAtHour = function(loc, argA, argB){
+    var sGeom = dY.solarGeom.solarGeomAtHour(loc, argA, argB)
     return {
         altitude: sGeom.altitudeRad,
         azimuth: sGeom.azimuthRad
     }
 }
 
-dY.solarGeom.solarGeomAt = function(lat, lng, tmz, argA, argB){
+dY.solarGeom.solarGeomAtHour = function(loc, argA, argB){
     /*
     calculates the following solar position angles for given coordinates, integer day of the year (0->365), local time. 
     Altitude
@@ -51,10 +88,13 @@ dY.solarGeom.solarGeomAt = function(lat, lng, tmz, argA, argB){
         }
         if (typeof argA === "object") {
             var dayOfYear = argA.dayOfYear();
-            var hourOfDay = argA.hourOfDay();
-        }        
+            var hourOfDay = argA.hourOfDay() + 0.5; // adds a half hour to get solar position at the middle of the tick's hour
+        }
     }
     
+    var lat =  loc.latitude;
+    var lng =  loc.longitude;
+    var tmz =  loc.timezone;
     
     var alpha = dY.solarGeom.calcAlpha(dayOfYear, hourOfDay);
     
