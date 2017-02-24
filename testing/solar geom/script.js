@@ -11,27 +11,29 @@ function onDataLoaded(dObj) {
     console.log(dayOfYear +", "+ hourOfDay);
     console.log( dY.datetime.hourOfYearToDate(hourOfYear).toGMTString() );
     
-    
+    /*
+    // if dObj does not contain a location, we could define it like this
     var location = {
         latitude: 37.72,
         longitude: -122.22,
         timezone: -8.0,
     };
+    */
     
-    var sGeom = dY.solarGeom.solarGeomAtHour(location,dayOfYear,hourOfDay);
+    var sGeom = dY.solarGeom.solarGeomAtHour(dObj.location,dayOfYear,hourOfDay);
     //console.log(sGeom);
     
-    var degAtHr = dY.solarGeom.degAnglesAtHour(location,dObj.ticks[hourOfYear])
+    var degAtHr = dY.solarGeom.degAnglesAtHour(dObj.location,dObj.ticks[hourOfYear])
     //console.log(degAtHr);
     
-    var radAtHr = dY.solarGeom.radAnglesAtHour(location,hourOfYear)
+    var radAtHr = dY.solarGeom.radAnglesAtHour(dObj.location,hourOfYear)
     //console.log(radAtHr);
         
-    for (var t in dObj.ticks) dObj.ticks[t].solarGeom = dY.solarGeom.solarGeomAtHour(location,dObj.ticks[t]);
+    for (var t in dObj.ticks) dObj.ticks[t].solarGeom = dY.solarGeom.solarGeomAtHour(dObj.location,dObj.ticks[t]);
     //console.log(dObj);
     
     
-    var geomAtDay = dY.solarGeom.hourlyAtGivenDay(location, 0);
+    var geomAtDay = dY.solarGeom.hourlyAtGivenDay(dObj.location, 0);
     console.log(geomAtDay);
 }
 

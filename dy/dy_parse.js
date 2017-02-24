@@ -188,8 +188,14 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     
     // fill out schema information
     schema = dY.util.summarizeTicks(schema, ticks);    
-        
+    
+    // create new Year object
     yr = new dY.Year(schema,ticks)
+    
+    // enrich with header information
+    yr = dY.parser.handleEPWHeader(yr, head);
+
+    
     if (typeof(callback)==='undefined') {
         return yr;
     } else {
@@ -197,6 +203,81 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     }
 }
 
+
+dY.parser.handleEPWHeader = function (yr, headString) {
+    // handle head information
+    var head = headString.split("\n");
+    var headLoc = head[0].split(",");
+    var headDsgnCond = head[1].split(",");
+    var headTypExtrmPeriods = head[2].split(",");
+    var headGroundTemp = head[3].split(",");
+    var headHolidayDaylightSvg = head[4].split(",");
+    var headComments1 = head[5].split(",");
+    var headComments2 = head[6].split(",");
+    
+    yr.epwhead = {};
+    
+    yr.location = {
+        city: headLoc[1],
+        state: headLoc[2],
+        country: headLoc[3],
+        source: headLoc[4],
+        wmo: parseInt(headLoc[5]),
+        latitude: parseFloat(headLoc[6]),
+        longitude: parseFloat(headLoc[7]),
+        timezone: parseFloat(headLoc[8]),
+        elevation: parseFloat(headLoc[9])
+    }
+    
+    yr.epwhead.designConditions = {
+        source: headDsgnCond[2],
+        note: "dY.parser doesn't currently handle most design condition data. Consider contributing to dY on GitHub!"
+    }
+    yr.epwhead.holidaysDaylightSavings = {
+        leapYearObserved: headHolidayDaylightSvg[1]=="Yes",
+        note: "dY.parser doesn't currently handle most Holiday/Daylight Savings data. Consider contributing to dY on GitHub!"
+    }    
+
+    yr.epwhead.comments = {
+        comments1: headComments1,
+        comments2: headComments2,
+        note: "dY.parser doesn't currently handle most comment data. Consider contributing to dY on GitHub!"
+    }        
+    
+    yr.epwhead.periods = {};
+    var pcnt = parseInt(headTypExtrmPeriods[1]);
+    for(var p=2; p<pcnt*4+2; p+=4){
+        var type = headTypExtrmPeriods[p+1].toLowerCase();
+        if (!yr.epwhead.periods.hasOwnProperty(type) ) yr.epwhead.periods[type] = []
+        var hrDomain = [
+            dY.datetime.dateToHourOfYear( Date.parse( headTypExtrmPeriods[p+2] + "/" + dY.datetime.year + " 00:30:00 UTC" ) ),
+            dY.datetime.dateToHourOfYear( Date.parse( headTypExtrmPeriods[p+3] + "/" + dY.datetime.year + " 23:30:00 UTC" ) )
+        ]
+        yr.epwhead.periods[type].push({
+            name: headTypExtrmPeriods[p],
+            domainStr: [headTypExtrmPeriods[p+2],headTypExtrmPeriods[p+3]],
+            domain: hrDomain
+        });
+    }
+    
+    yr.epwhead.ground = [];
+    var gcnt = parseInt(headGroundTemp[1]);
+    for(var g=2; g<gcnt*16+2; g+=16){
+        var gobj = {};
+        gobj.depth = parseFloat(headGroundTemp[g]);
+        gobj.conductivity = parseFloat(headGroundTemp[g+1]);
+        gobj.density = parseFloat(headGroundTemp[g+2]);
+        gobj.specificHeat = parseFloat(headGroundTemp[g+3]);
+        gobj.monthlyTemperature = [];
+        for(var m=0; m<12; m++){
+            gobj.monthlyTemperature.push(parseFloat(headGroundTemp[g+m+4]));
+        }
+        
+        yr.epwhead.ground.push(gobj);
+    }
+    
+    return yr;
+}
 
 dY.parser.handleSingleEPlusFileUpload = function (evt) {
     var file = evt.target.files[0];
