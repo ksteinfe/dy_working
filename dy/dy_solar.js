@@ -144,3 +144,118 @@ dY.solarGeom.calcAlpha = function(dayOfYear, hourOfDay){
 
 dY.solarGeom.degToRad = function(degrees){ return degrees * (Math.PI / 180); }
 dY.solarGeom.radToDeg = function(radians){ return radians * (180 / Math.PI); }
+
+
+// lunarGeom based on https://github.com/mourner/suncalc
+//
+
+dY.lunarGeom = {};
+
+dY.lunarGeom.hourlyAtGivenDay = function(loc, dayOfYear){
+    var hrs = [...Array(24).keys()];
+    var data = hrs.map( function(h){ return dY.lunarGeom.lunarGeomAtHour(loc,dayOfYear,h); } );
+    
+    return {
+        location: loc,
+        dayOfYear: dayOfYear,
+        data: data
+    }
+}
+
+// general calculations for position
+
+dY.lunarGeom.e = dY.solarGeom.degToRad( 23.4397 ); // obliquity of the Earth
+
+dY.lunarGeom.rightAscension = function(l, b) { return Math.atan2(Math.sin(l) * Math.cos(dY.lunarGeom.e) - Math.tan(b) * Math.sin(dY.lunarGeom.e), Math.cos(l)); }
+dY.lunarGeom.declination = function(l, b)    { return Math.asin(Math.sin(b) * Math.cos(dY.lunarGeom.e) + Math.cos(b) * Math.sin(dY.lunarGeom.e) * Math.sin(l)); }
+
+dY.lunarGeom.azimuth = function(H, phi, dec)  { return Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(phi) - Math.tan(dec) * Math.cos(phi)); }
+dY.lunarGeom.altitude = function(H, phi, dec) { return Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H)); }
+
+dY.lunarGeom.siderealTime = function(d, lw) { return dY.solarGeom.degToRad( (280.16 + 360.9856235 * d)) - lw; }
+
+dY.lunarGeom.astroRefraction = function(h) {
+    if (h < 0) // the following formula works for positive altitudes only.
+        h = 0; // if h = -0.08901179 a div/0 would occur.
+
+    // formula 16.4 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
+    // 1.02 / tan(h + 10.26 / (h + 5.10)) h in degrees, result in arc minutes -> converted to rad:
+    return 0.0002967 / Math.tan(h + 0.00312536 / (h + 0.08901179));
+}
+
+
+// moon calculations, based on http://aa.quae.nl/en/reken/hemelpositie.html formulas
+
+dY.lunarGeom.moonCoords = function(d){ // geocentric ecliptic coordinates of the moon
+
+    var L = dY.solarGeom.degToRad( (218.316 + 13.176396 * d)), // ecliptic longitude
+        M = dY.solarGeom.degToRad( (134.963 + 13.064993 * d)), // mean anomaly
+        F = dY.solarGeom.degToRad( (93.272 + 13.229350 * d)),  // mean distance
+
+        l  = L + dY.solarGeom.degToRad( 6.289 * Math.sin(M)), // longitude
+        b  = dY.solarGeom.degToRad( 5.128 * Math.sin(F)),     // latitude
+        dt = 385001 - 20905 * Math.cos(M);  // distance to the moon in km
+
+    return {
+        ra: dY.lunarGeom.rightAscension(l, b),
+        dec: dY.lunarGeom.declination(l, b),
+        dist: dt
+    };
+}
+
+dY.lunarGeom.lunarGeomAtHour = function (loc, argA, argB) {
+    var dayOfYear = argA;
+    var hourOfDay = argB;
+    if (typeof argB === "undefined") {
+        if (typeof argA === "number") {
+            var dayOfYear = Math.floor(argA /24);
+            var hourOfDay = argA % 24;
+        }
+        if (typeof argA === "object") {
+            var dayOfYear = argA.dayOfYear();
+            var hourOfDay = argA.hourOfDay() + 0.5; // adds a half hour to get solar position at the middle of the tick's hour
+        }
+    }
+    var date = dY.datetime.hourOfYearToDate(dayOfYear * 24 + hourOfDay);
+    
+    var lat =  loc.latitude;
+    var lng =  loc.longitude;
+
+    // date/time constants and conversions
+
+    var dayMs = 1000 * 60 * 60 * 24,
+        J1970 = 2440588,
+        J2000 = 2451545;
+
+    function toJulian(date) { return date.valueOf() / dayMs - 0.5 + J1970; }
+    function fromJulian(j)  { return new Date((j + 0.5 - J1970) * dayMs); }
+    function toDays(date)   { return toJulian(date) - J2000; }
+
+    var lw  = dY.solarGeom.degToRad(-lng),
+        phi = dY.solarGeom.degToRad( lat ),
+        d   = toDays(date),
+
+        c = dY.lunarGeom.moonCoords(d),
+        H = dY.lunarGeom.siderealTime(d, lw) - c.ra,
+        h = dY.lunarGeom.altitude(H, phi, c.dec),
+        // formula 14.1 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
+        pa = Math.atan2(Math.sin(H), Math.tan(phi) * Math.cos(c.dec) - Math.sin(c.dec) * Math.cos(H));
+
+    var h = h + dY.lunarGeom.astroRefraction(h); // altitude correction for refraction
+    
+    var aziRad = dY.lunarGeom.azimuth(H, phi, c.dec);
+    var altRad = h;
+    
+    return {
+        azimuthRad: aziRad,
+        altitudeRad: altRad,
+        azimuthDeg: dY.solarGeom.radToDeg(aziRad),
+        altitudeDeg: dY.solarGeom.radToDeg(altRad),        
+        distance: c.dist,
+        parallacticAngleRad: pa
+    };
+};
+
+
+
+

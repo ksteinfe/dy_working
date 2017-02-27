@@ -20,7 +20,7 @@ function onDataLoaded(dObj) {
     };
     */
     
-    var sGeom = dY.solarGeom.solarGeomAtHour(dObj.location,dayOfYear,hourOfDay);
+    var sGeom = dY.solarGeom.solarGeomAtHour(dObj.location,0);
     //console.log(sGeom);
     
     var degAtHr = dY.solarGeom.degAnglesAtHour(dObj.location,dObj.ticks[hourOfYear])
@@ -32,8 +32,13 @@ function onDataLoaded(dObj) {
     for (var t in dObj.ticks) dObj.ticks[t].solarGeom = dY.solarGeom.solarGeomAtHour(dObj.location,dObj.ticks[t]);
     //console.log(dObj);
     
+    var sGeomAtDay = dY.solarGeom.hourlyAtGivenDay(dObj.location, 0);
+    //console.log(sGeomAtDay);
     
-    var geomAtDay = dY.solarGeom.hourlyAtGivenDay(dObj.location, 0);
-    console.log(geomAtDay);
+    var lGeom = dY.lunarGeom.lunarGeomAtHour(dObj.location,0);
+    //console.log( lGeom );
+    
+    var lGeomAtDay = dY.lunarGeom.hourlyAtGivenDay(dObj.location, 0);
+    console.log(lGeomAtDay);    
 }
 
