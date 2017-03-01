@@ -45,6 +45,17 @@ dY.solarGeom.hourlyAtGivenDay = function(loc, dayOfYear){
     }
 }
 
+dY.solarGeom.geomSurroundingHour = function(loc, hourOfYear, resolution){
+    /*
+    for a given hour of year, calculate 
+    */
+    return {
+        location: loc,
+        hourOfYear: false,
+        data: [ solarGeom, solarGeom, solarGeom, solarGeom ]
+    }
+}
+
 
 dY.solarGeom.vecAtHour = function(loc, argA, argB){
     var sGeom = dY.solarGeom.solarGeomAtHour(loc, argA, argB)
