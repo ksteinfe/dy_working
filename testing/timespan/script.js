@@ -4,7 +4,7 @@ function onDataLoaded(dObj) {
     console.log("data is loaded, i'm ready to go!");
     console.log(dObj);
     
-    var hr = dY.timeSpan.hourOfYear(36);
+    var hr = dY.timeSpan.hourOfYear(1);
     console.log(hr);
     hr.report();
     

@@ -16,18 +16,38 @@ dY.Year.prototype.valuesOf = function(zonekey) {
     return this.ticks.map(function(d) {return d.valueOf(zonekey);});
 };
 
-
+// this function currently only works with hourly ticks.
+// TODO: modify to work with ticks of any timespan
+// also, move to dY namespace as below
 dY.Year.prototype.dailySummary = function(dayCount = 1) {
     var slcs = [];
     var t = 0;
     while (t < this.ticks.length){
-        stick = new dY.STick( dY.util.summarizeTicks(this.schema, ticks.slice(t,t+24*dayCount)  ) );
+        var timespan = dY.timeSpan.hoursOfYear(t,t+24*dayCount-1);
+        var data = dY.util.summarizeTicks(this.schema, ticks.slice(t,t+24*dayCount)  );
         
-        stick.setTickDomain([t,t+24*dayCount-1])
-        if (dayCount==1) stick.dayOfYear = t/24;
-        
-        slcs.push( stick ) ;
+        slcs.push( new dY.STick( timespan, data ) ) ;
         t += 24*dayCount;
     }
     return slcs;
+};
+
+
+dY.hourOfDaySummary = function(schema, ticks) {
+    var sortedTicks = {};
+    for (var t in ticks) {
+        var  h = ticks[t].hourOfDay();
+        if (!sortedTicks.hasOwnProperty(h) ) sortedTicks[h] = [];
+        sortedTicks[h].push( ticks[t] ) ;
+    }
+    
+    var ret = [];
+    for (var h in sortedTicks){
+        var timespan = dY.timeSpan.hourOfYear( parseInt(h) );
+        var data = dY.util.summarizeTicks(schema, sortedTicks[h] );
+        var stick = new dY.STick( timespan, data );
+        
+        ret.push(stick);
+    }
+    return ret;
 };

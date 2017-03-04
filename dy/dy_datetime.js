@@ -64,18 +64,21 @@ dY.dt.monthTable = [
 ]
 
 
-dY.timeSpan = function(DateTimeStart, DateTimeEnd){
-    // can be given Dates or milliseconds 
+// dY.timeSpan
+//
+
+dY.timeSpan = function(start, end){
+    // can be given Dates or minutes of year 
     // given dates should be in UTC and in year 1970
     // given dates will be rounded either UP or DOWN to the nearest minute
     
-    if (Object.prototype.toString.call(DateTimeStart) == "[object Date]") DateTimeStart = +DateTimeStart
-    if (Object.prototype.toString.call(DateTimeEnd) == "[object Date]") DateTimeEnd = +DateTimeEnd
+    if (Object.prototype.toString.call(start) == "[object Date]") start = +start
+    if (Object.prototype.toString.call(end) == "[object Date]") end = +end
     
-    var coeff = 1000 * 60; // to round to nearest minute
-    var a = Math.ceil( +DateTimeStart / coeff ) * coeff;
-    var b = Math.floor( +DateTimeEnd / coeff ) * coeff;
-    this._ = dY.dt.niceFormat( new Date(a) ) + " -> " + dY.dt.niceFormat( new Date(b) )
+    //var coeff = 1000 * 60; // to round to nearest minute
+    var a = Math.ceil( start );
+    var b = Math.floor( end );
+    this._ = dY.dt.niceFormat( new Date(a*1000*60) ) + " -> " + dY.dt.niceFormat( new Date(b*1000*60) )
     this.min = a;
     this.max = b;
     this.mid = (b-a)*0.5 + a;
@@ -86,9 +89,9 @@ dY.timeSpan = function(DateTimeStart, DateTimeEnd){
     //this.date = function() { return this.dateMid() }; // a stand in for relating this time span to a single date for plotting a tick
     //this.dateDomain = function() { return [new Date(a), new Date(b)]; };
     
-    this.hourOfYearStart = function() { return Math.round(a / 1000 / 60 / 60); };
-    this.hourOfYearMid = function() { return this.mid / 1000 / 60 / 60; }; // NOT ROUNDED
-    this.hourOfYearEnd = function() { return Math.round(b / 1000 / 60 / 60); }; 
+    this.hourOfYearStart = function() { return Math.round(a / 60); };
+    this.hourOfYearMid = function() { return this.mid / 60; }; // NOT ROUNDED
+    this.hourOfYearEnd = function() { return Math.round(b / 60); }; 
     this.hourOfYear = function() { return Math.floor(this.hourOfYearMid()) }; // a stand in for relating this time span to a single hour of the year for plotting a tick
     this.hourOfYearDomain = function() { return [ this.hourOfYearStart(), this.hourOfYearEnd() - 1 ]; }; // end index is inclusive for constructing d3 domains. spans of a single hour will report zero-length domains
     
@@ -96,11 +99,10 @@ dY.timeSpan = function(DateTimeStart, DateTimeEnd){
     
     this.dayOfYear = function() { return Math.floor(this.hourOfYear() /24); }; // a stand in for relating this time span to a single day of the year for plotting a tick
     this.hourOfDay = function() { return this.hourOfYear() % 24;}  // a stand in for relating this time span to a single day of the year for plotting a tick
+    this.monthOfYear = function() { return new Date(this.mid*1000*60).getUTCMonth() } // a stand in for relating this time span to a single month of the year for plotting a tick
     
     this.duration = function() { return b - a; };
-    this.durationSec = function() { return Math.round( (b - a) / 1000 ); };
-    this.durationMin = function() { return Math.round( (b - a) / 1000 / 60); };
-    this.durationHrs = function() { return Math.round( (b - a) / 1000 / 60 / 60); };
+    this.durationHrs = function() { return Math.round( (b - a) / 60); };
     
     this.isHour = function() { return this.durationHrs() == 1; };
 }
@@ -117,21 +119,23 @@ dY.timeSpan.prototype.report = function() {
     console.log("\t hour of year\t\t"+this.hourOfYear());
     console.log("\t day of year\t\t"+this.dayOfYear());
     console.log("\t hour of day\t\t"+this.hourOfDay());
+    console.log("\t month of year\t\t"+this.monthOfYear());
     
     //console.log("\t hoursOfYear\t\t"+this.hoursOfYear());
     
  };
 
-dY.timeSpan.hourOfYear = function(hr){ return new dY.timeSpan(hr * (1000*60*60) , (hr+1) * (1000*60*60))}
-dY.timeSpan.hoursOfYear = function(a,b){ return new dY.timeSpan(a * (1000*60*60) , (b+1) * (1000*60*60))}
+dY.timeSpan.hourOfYear = function(hr){ return new dY.timeSpan(hr*60 , (hr+1)*60) }
+dY.timeSpan.hoursOfYear = function(a,b){ return new dY.timeSpan(a*60 , b*60)}
 
-dY.timeSpan.dayOfYear = function(day){ return new dY.timeSpan( (day*24) * (1000*60*60) , ((day+1)*24) * (1000*60*60))}
-dY.timeSpan.daysOfYear = function(a,b){ return new dY.timeSpan( (a*24) * (1000*60*60) , ((b+1)*24) * (1000*60*60))}
+dY.timeSpan.dayOfYear = function(day){ return new dY.timeSpan( (day*24) * 60 , ((day+1)*24) * 60)}
+dY.timeSpan.daysOfYear = function(a,b){ return new dY.timeSpan( (a*24) * 60 , ((b+1)*24) * 60)}
  
 dY.timeSpan.monthOfYear = function(mth) { return new dY.timeSpan( dY.dt.monthTable[mth].msDomain[0], dY.dt.monthTable[mth].msDomain[1] ); };
 dY.timeSpan.monthsOfYear = function(a,b) { return new dY.timeSpan( dY.dt.monthTable[a].msDomain[0], dY.dt.monthTable[b].msDomain[1] ); };
 
-dY.timeSpan.fullYear = new dY.timeSpan( 0, 31536000000 );
+//dY.timeSpan.fullYear = new dY.timeSpan( 0, 31536000000 );
+dY.timeSpan.fullYear = new dY.timeSpan( 0, 525600 );
 dY.timeSpan.janurary = dY.timeSpan.monthOfYear(0);
 dY.timeSpan.february = dY.timeSpan.monthOfYear(1);
 dY.timeSpan.march = dY.timeSpan.monthOfYear(2);
