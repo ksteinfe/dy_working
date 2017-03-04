@@ -5,11 +5,11 @@ function onDataLoaded(dObj) {
     console.log(dObj);
     
     
-    var hourOfYear = 1900;
+    var hourOfYear = 0;
     var dayOfYear = dObj.ticks[hourOfYear].dayOfYear();
     var hourOfDay = dObj.ticks[hourOfYear].hourOfDay();
     console.log(dayOfYear +", "+ hourOfDay);
-    console.log( dY.datetime.hourOfYearToDate(hourOfYear).toGMTString() );
+    console.log( dY.dt.hourOfYearToDate(hourOfYear).toUTCString() );
     
     /*
     // if dObj does not contain a location, we could define it like this

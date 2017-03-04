@@ -123,7 +123,8 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
     // create hourly ticks
     ticks = [];
     results.data.forEach(function(row,n) {
-        hourOfYear = dY.datetime.dateToHourOfYear( dY.datetime.dateStringToDate(row["Date/Time"]) );
+        hourOfYear = dY.dt.dateToHourOfYear( dY.dt.dateStringToDate(row["Date/Time"]) );
+        timespan = dY.timeSpan.hourOfYear(hourOfYear);
         data = {};
         for (var zon in schema) {
             data[zon] = {};
@@ -132,7 +133,7 @@ dY.parser.handleParseEPlusResults = function (results, callback) {
                 data[zon][key] = value;
             }
         }
-        ticks.push( new dY.Tick(hourOfYear, data)  );
+        ticks.push( new dY.Tick(timespan, data)  );
         
     });
     
@@ -175,14 +176,15 @@ dY.parser.handleParseEPWResults = function (head, results, callback) {
     ticks = [];
     results.data.forEach(function(row,n) {
         datestring = dY.util.pad(row[1]) +"/"+ dY.util.pad(row[2]) + "  " + dY.util.pad(row[3])+ ":00"
-        hourOfYear = dY.datetime.dateToHourOfYear( dY.datetime.dateStringToDate(datestring) );
+        hourOfYear = dY.dt.dateToHourOfYear( dY.dt.dateStringToDate(datestring) );
+        timespan = dY.timeSpan.hourOfYear(hourOfYear);
         data = {};
         data["EPW"] = {};
         dY.parser.EPWKeyDefs.forEach(function(keyDef) {
             value = row[keyDef.col];
             data["EPW"][keyDef.key] = value;
         });
-        ticks.push( new dY.Tick(hourOfYear, data)  );
+        ticks.push( new dY.Tick(timespan, data)  );
         
     });
     
@@ -250,8 +252,8 @@ dY.parser.handleEPWHeader = function (yr, headString) {
         var type = headTypExtrmPeriods[p+1].toLowerCase();
         if (!yr.epwhead.periods.hasOwnProperty(type) ) yr.epwhead.periods[type] = []
         var hrDomain = [
-            dY.datetime.dateToHourOfYear( Date.parse( headTypExtrmPeriods[p+2] + "/" + dY.datetime.year + " 00:30:00 UTC" ) ),
-            dY.datetime.dateToHourOfYear( Date.parse( headTypExtrmPeriods[p+3] + "/" + dY.datetime.year + " 23:30:00 UTC" ) )
+            dY.dt.dateToHourOfYear( Date.parse( headTypExtrmPeriods[p+2] + "/" + dY.dt.year + " 00:30:00 UTC" ) ),
+            dY.dt.dateToHourOfYear( Date.parse( headTypExtrmPeriods[p+3] + "/" + dY.dt.year + " 23:30:00 UTC" ) )
         ]
         yr.epwhead.periods[type].push({
             name: headTypExtrmPeriods[p],

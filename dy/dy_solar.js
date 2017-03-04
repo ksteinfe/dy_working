@@ -227,7 +227,7 @@ dY.lunarGeom.lunarGeomAtHour = function (loc, argA, argB) {
             var hourOfDay = argA.hourOfDay() + 0.5; // adds a half hour to get solar position at the middle of the tick's hour
         }
     }
-    var date = dY.datetime.hourOfYearToDate(dayOfYear * 24 + hourOfDay);
+    var date = dY.dt.hourOfYearToDate(dayOfYear * 24 + hourOfDay);
     
     var lat =  loc.latitude;
     var lng =  loc.longitude;

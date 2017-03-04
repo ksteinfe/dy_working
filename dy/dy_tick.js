@@ -3,23 +3,23 @@ var dY = dY || {};
 
 
 
-dY.Tick = function(hourOfYear, data){
-    this.hourOfYear = hourOfYear;
+dY.Tick = function(timespan, data){
+    this.timespan = timespan;
+    this.hourOfYear = timespan.hourOfYear();
     this.data = data;
 }
 
-dY.Tick.prototype.hourOfDay = function() {
-  return this.hourOfYear % 24;
-};
-
-dY.Tick.prototype.dayOfYear = function() {
-  return Math.floor(this.hourOfYear /24);
-};
+dY.Tick.prototype.hourOfDay = function() { return this.timespan.hourOfDay(); };
+dY.Tick.prototype.dayOfYear = function() { return this.timespan.dayOfYear(); };
 
 dY.Tick.prototype.valueOf = function(zonekey) {
     if (zonekey.constructor === Array)  return this.data[zonekey[0]][zonekey[1]];
     return this.data[Object.keys(this.data)[0]][zonekey];    
 };
+
+dY.Tick.prototype.isIn = function(ts) { return ts.contains(this.timespan.mid); };
+
+
 
 
 
