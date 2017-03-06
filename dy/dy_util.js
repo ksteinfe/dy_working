@@ -32,6 +32,28 @@ dY.util.remap = function(src, tar, srcVal) {
 }
 
 
+
+// given an array of objects and a key that is expected to return an integer, bins the objects by those that share sequential values
+// note that given array is expected to be sorted already
+dY.util.splitAtDiscontinuousHours = function(arr, key){
+    var bins = [];
+    var bin = [arr[0]];
+    var idx = arr[0][key];
+    for (var n=1; n<arr.length; n++){
+        if (arr[n][key] != idx+1){
+            bin.domain = [bin[0][key], bin[bin.length-1][key] ];
+            bins.push(bin);
+            bin = [arr[n]];
+        } else { 
+            bin.push(arr[n]);
+        }
+        idx = arr[n][key];
+    }
+    bin.domain = [bin[0][key], bin[bin.length-1][key] ];
+    bins.push(bin);
+    return bins;
+} 
+
 dY.util.summarizeTicks = function(schema, ticks){
     var summarySchema = {}
     var alls = []; // summary data by zonekey for calculating ranges for schema

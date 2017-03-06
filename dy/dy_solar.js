@@ -60,10 +60,14 @@ dY.solarGeom.geomNearHourOfYear = function(loc, hourOfYear, resolution){
         result.hourOfYear = d;
         return result;
     } );
+    //var sunIsUp = data[Math.floor(data.length / 2)].altitudeDeg >= 0.0;
+    var func = function(a,b){ if (b.altitudeDeg >=0.0) {return a + 1} else {return a} }
+    var sunUpPercent = data.reduce(func, 0) / data.length;
     return {
         location: loc,
         hourOfYear: hourOfYear,
-        data: data
+        data: data,
+        sunUpPercent: sunUpPercent
     }
 }
 
