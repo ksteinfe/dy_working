@@ -18,6 +18,7 @@ dY.Tick.prototype.hourOfYear = function() { return this.ts.hourOfYear(); };
 dY.Tick.prototype.dayOfYear = function() { return this.ts.dayOfYear(); };
 dY.Tick.prototype.hourOfDay = function() { return this.ts.hourOfDay(); };
 dY.Tick.prototype.monthOfYear = function() { return this.ts.monthOfYear(); };
+dY.Tick.prototype.season = function() { return this.ts.season(); };
 dY.Tick.prototype.isIn = function(ts) { return ts.contains(this.ts.mid); };
 
 

@@ -12,7 +12,11 @@ dY.solarGeom = {};
 
 dY.solarGeom.dailyAtGivenHour = function(loc, hourOfDay){
     var days = [...Array(365).keys()];
-    var data = days.map( function(d){ return dY.solarGeom.solarGeomAtHour(loc,d,hourOfDay); } );
+    var data = days.map( function(d){ 
+        result = dY.solarGeom.solarGeomAtHour(loc,d,hourOfDay); 
+        result.dayOfYear = d;
+        return result;        
+    } );
     
     return {
         location: loc,
@@ -45,14 +49,21 @@ dY.solarGeom.hourlyAtGivenDay = function(loc, dayOfYear){
     }
 }
 
-dY.solarGeom.geomSurroundingHour = function(loc, hourOfYear, resolution){
-    /*
-    for a given hour of year, calculate 
-    */
+dY.solarGeom.geomNearHourOfYear = function(loc, hourOfYear, resolution){
+    if (typeof resolution === "undefined") resolution = 5;
+    if (resolution%2==1) resolution += 1;
+    
+    var hrs = [];
+    for (var t=0; t<=1.0; t+=1.0/resolution) hrs.push(hourOfYear-0.5 + t);
+    var data = hrs.map( function(d){ 
+        var result = dY.solarGeom.solarGeomAtHour(loc,d); 
+        result.hourOfYear = d;
+        return result;
+    } );
     return {
         location: loc,
-        hourOfYear: false,
-        data: [ solarGeom, solarGeom, solarGeom, solarGeom ]
+        hourOfYear: hourOfYear,
+        data: data
     }
 }
 

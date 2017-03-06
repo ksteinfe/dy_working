@@ -63,6 +63,12 @@ dY.dt.monthTable = [
     {idx: 11, fullname: "December", shortname: "Dec" , msDomain: [Date.UTC(dY.dt.year,11,1,0,0,0,0),  Date.UTC(dY.dt.year+1,0,1,0,0,0,0)] }
 ]
 
+dY.dt.seasonTable = [
+    {idx: 0, fullname: "Winter"  },
+    {idx: 1, fullname: "Spring" },
+    {idx: 2, fullname: "Summer" },
+    {idx: 3, fullname: "Fall" },
+]
 
 // dY.timeSpan
 //
@@ -100,6 +106,15 @@ dY.timeSpan = function(start, end){
     this.dayOfYear = function() { return Math.floor(this.hourOfYear() /24); }; // a stand in for relating this time span to a single day of the year for plotting a tick
     this.hourOfDay = function() { return this.hourOfYear() % 24;}  // a stand in for relating this time span to a single day of the year for plotting a tick
     this.monthOfYear = function() { return new Date(this.mid*1000*60).getUTCMonth() } // a stand in for relating this time span to a single month of the year for plotting a tick
+    
+    this.season = function() {
+        var mth = this.monthOfYear();
+        if ( mth==0||mth==1||mth==11) return dY.dt.seasonTable[0]; // Winter
+        if ( mth==2||mth==3||mth==4) return dY.dt.seasonTable[1]; // Spring
+        if ( mth==5||mth==6||mth==7) return dY.dt.seasonTable[2]; // Summer
+        if ( mth==8||mth==9||mth==10) return dY.dt.seasonTable[3]; // Fall
+        
+    };
     
     this.duration = function() { return b - a; };
     this.durationHrs = function() { return Math.round( (b - a) / 60); };

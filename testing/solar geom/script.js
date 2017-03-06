@@ -39,6 +39,11 @@ function onDataLoaded(dObj) {
     //console.log( lGeom );
     
     var lGeomAtDay = dY.lunarGeom.hourlyAtGivenDay(dObj.location, 0);
-    console.log(lGeomAtDay);    
+    console.log(lGeomAtDay);  
+
+    var geomNearHourOfYear = dY.solarGeom.geomNearHourOfYear(dObj.location, 24, 5);
+    console.log(geomNearHourOfYear);  
+    
+    console.log(dObj.ticks[0].season().fullname);
 }
 
