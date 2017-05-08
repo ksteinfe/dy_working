@@ -393,8 +393,9 @@ dY.parser.handleMultDBuilderFileUpload = function (evt) {
             //console.log(secondSplitHeadRow);
             var fname = filename.slice(0,-4);
             for (var col=1; col<firstSplitHeadRow.length; col++){
-                var str = fname+":"+ firstSplitHeadRow[col]+"[" + secondSplitHeadRow[col] + "]"; //creates EPlus style header from DB headers. NOTE: cutting to -1 takes the last character off! I fixed it to just not take a 2nd param.
-                combinedHeaderRows = combinedHeaderRows + "," + str;
+                var str = fname+":"+ firstSplitHeadRow[col]+"[" + secondSplitHeadRow[col].replace(/[^\w\s]/gi, '') + "]"; //creates EPlus style header from DB headers. NOTE: cutting to -1 takes the last character off! I fixed it to just not take a 2nd param.
+                var res = str.replace(/"/g,'')
+                combinedHeaderRows = combinedHeaderRows + "," + res;
             }
             
             
@@ -403,26 +404,37 @@ dY.parser.handleMultDBuilderFileUpload = function (evt) {
             //DB dates look like this: "1/1/2002  1:00:00 AM"
             //loop
             if (init){
+                var prevDay = -1; // DB labels the last hour of each day with the next day's date. Remember to replace if needed.
+                var prevMth = -1; 
                 for (var row = 0; row<(contentRows.length-1); row++){
+                    var firstSpace = contentRows[row].indexOf(" ");
+                    var lastSpace = contentRows[row].lastIndexOf(" ");
+                    
                     var month = doubleDigit(contentRows[row].slice(0,contentRows[row].indexOf("/")));
                     var day = doubleDigit(contentRows[row].slice(contentRows[row].indexOf("/")+1, contentRows[row].lastIndexOf("/")));
+                    
                     if (contentRows[row].indexOf(" ")== -1){
                         var loc = contentRows[row].length;
                     } else{
-                        var loc = contentRows[row].indexOf(" ");
+                        var loc = firstSpace;
                     }
                     //LOL all that and I didn't actually need the year
         //			var year = contentRows[row].slice(loc-2, loc);
-                    if (contentRows[row].indexOf(" ")== -1){
+                    if (firstSpace== -1){
                         var hour = 24;
+                        if (month != prevMth) month = prevMth;
+                        day = prevDay;
                     } else {
-                        var hour = contentRows[row].slice(contentRows[row].indexOf(" "),contentRows[row].indexOf(" ") +2).trim();
-                            if((contentRows[row].slice(contentRows[row].lastIndexOf(" "), contentRows[row].lastIndexOf(" ") +2) =="PM")&& hour != '12' ){
-                                hour = hour + 12;
-                            }
+                        var hour = parseInt( contentRows[row].slice( firstSpace, contentRows[row].indexOf(":") ).trim() ) ;
+                        if( (contentRows[row].slice(lastSpace+1, lastSpace+3) =="PM") && (hour != 12)  ){
+                            hour = hour + 12;
+                        }
                     }
                     hour = doubleDigit(hour.toString());
                     combinedContentRows[row]=  month + '/' + day +  '  ' + hour + ":00:00"
+                    prevDay = day;
+                    prevMth = month;
+                    //console.log(day);                    
                 }
                 init = false;
             }
@@ -432,7 +444,7 @@ dY.parser.handleMultDBuilderFileUpload = function (evt) {
             //console.log(contentRows.length)//this is # rows. It is 8762 (should be 2 shorter)
             for(var row = 0; row<(contentRows.length-1); row++){//iterate over rows
                 var str = contentRows[row].slice(contentRows[row].indexOf(",")+1).trim() 
-                res = str.replace(/"/g,'')//they were all in quotes for some reason. now they're not. Did we want them to be?
+                var res = str.replace(/"/g,'')//they were all in quotes for some reason. now they're not. Did we want them to be?
                 combinedContentRows[row] = combinedContentRows[row]+ "," +res;//works! has a trailing comma I don't like though
             }
             //console.log(combinedContentRows[0].length);
